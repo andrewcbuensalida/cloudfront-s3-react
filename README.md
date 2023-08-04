@@ -1,3 +1,55 @@
+https://www.youtube.com/watch?v=mls8tiiI3uc&t=15s
+
+create a react app with
+  npx create-react-app cloudfront-s3-react
+change some of it then start with
+  npm start
+build with
+  npm run build
+
+create an s3 bucket with bucket name cloudfront.anhonestobserver.com and another with www.cloudfront.anhonestobserver.com
+upload files in the build folder to the www one
+
+uncheck block all public access in permissions tab for www
+
+paste this into the bucket policy
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicReadGetObject",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::www.cloudfront.anhonestobserver.com/*"
+            ]
+        }
+    ]
+}
+
+test that bucket is public by going to the url of the index.html. You should see a blank page but with the title of it on the tab.
+
+enable static website hosting by going to properties tab
+now you can go to http://www.cloudfront.anhonestobserver.com.s3-website-us-west-1.amazonaws.com and it will work.
+
+redirect cloudfront.anhonestobserver.com to the www one by going to properties, enable static website hosting, hosting type = redirect, host name should be www.cloudfront.anhonestobserver.com, http protocol = https. If not using cloudfront, can't get around just http if you're using s3 for static website hosting.
+
+go to cloudfront. create distribution. origin name = the s3 bucket www but it will suggest to use the endpoint instead so choose the endpoint. viewer protocol property = redirect http to https. check enable security protections. alternate domain name (cname) = www.cloudfront.anhonestobserver.com. Then request a certificate. 
+It will bring you to ACM. Fully qualified domain names = www.cloudfront.anhonestobserver.com and cloudfront.anhonestobserver.com.
+When it's pending validation, copy the CNAME name to the record name when creating a record in route53. cname value to value. After a few minutes, it should show success status in ACM. Now in cloudfront you can choose that certificate. 
+Create another distribution but for the non-www one. Use the same certificate. use the non-www for alternate domain name cname. 
+open route53. create A record pointing to cloudfront. check alias. route traffic to alias to cloudfront you just created. 
+Basically route53 A records point to cloudfront which points to s3. 
+
+
+
+
+
+
+==================================================================================
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
